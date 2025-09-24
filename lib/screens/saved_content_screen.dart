@@ -121,7 +121,7 @@ class _SavedContentScreenState extends State<SavedContentScreen>
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             spreadRadius: 1,
             blurRadius: 5,
             offset: const Offset(0, 3),
@@ -147,7 +147,7 @@ class _SavedContentScreenState extends State<SavedContentScreen>
                 end: Alignment.bottomCenter,
                 colors: [
                   Colors.transparent,
-                  Colors.black.withOpacity(0.6),
+                  Colors.black.withValues(alpha: 0.6),
                 ],
               ),
             ),

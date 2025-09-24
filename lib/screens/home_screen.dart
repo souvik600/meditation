@@ -342,7 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
           border: Border.all(color: primaryBrown),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1), // Fixed this line
+              color: Colors.black.withValues(alpha: 0.1), // Fixed this line
               spreadRadius: 1,
               blurRadius: 5,
               offset: const Offset(0, 3),
@@ -632,7 +632,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1), // Fixed this line
+            color: Colors.black.withValues(alpha: 0.1), // Fixed this line
             spreadRadius: 2,
             blurRadius: 10,
           ),

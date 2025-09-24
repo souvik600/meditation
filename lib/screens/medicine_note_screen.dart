@@ -140,7 +140,7 @@ class _MedicineNoteScreenState extends State<MedicineNoteScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 5,
             offset: const Offset(0, 3),
@@ -187,7 +187,7 @@ class _MedicineNoteScreenState extends State<MedicineNoteScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             spreadRadius: 1,
             blurRadius: 10,
             offset: const Offset(0, -3),
@@ -239,7 +239,7 @@ class _MedicineNoteScreenState extends State<MedicineNoteScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: TextField(
@@ -247,7 +247,7 @@ class _MedicineNoteScreenState extends State<MedicineNoteScreen> {
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: label,
-          hintStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+          hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
           prefixIcon: Icon(icon1, color: Colors.white),
           suffixIcon: Icon(icon2, color: Colors.white),
         ),
@@ -259,7 +259,7 @@ class _MedicineNoteScreenState extends State<MedicineNoteScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

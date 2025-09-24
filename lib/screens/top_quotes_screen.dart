@@ -123,7 +123,7 @@ class TopQuotesScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.4),
+                        color: Colors.black.withValues(alpha: 0.4),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
