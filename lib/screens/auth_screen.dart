@@ -130,7 +130,6 @@ class _AuthScreenState extends State<AuthScreen> {
                       AuthButton(
                         text: 'Next',
                         onPressed: () {
-                          _onNext();
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(builder: (context) => const HomeScreen()),

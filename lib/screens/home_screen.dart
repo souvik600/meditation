@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:meditation/screens/journal_screen.dart';
 import 'package:meditation/screens/sound_list_screen.dart';
+import 'package:meditation/screens/medicine_note_screen.dart';
+import 'package:meditation/screens/top_quotes_screen.dart';
 import '../utils/constants.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -20,13 +23,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      drawer: _buildDrawer(context),
-      body: SafeArea(
-        child: _getSelectedScreen(),
+    return WillPopScope(
+      onWillPop: () async {
+        // If we're not on the home tab, navigate to home tab instead of exiting
+        if (_selectedIndex != 0) {
+          setState(() {
+            _selectedIndex = 0;
+          });
+          return false; // Prevent default back button behavior
+        }
+        // If we're already on the home tab, allow the back button to exit
+        return true;
+      },
+      child: Scaffold(
+        backgroundColor: backgroundColor,
+        drawer: _buildDrawer(context),
+        body: SafeArea(child: _getSelectedScreen()),
+        bottomNavigationBar: _buildBottomNavigationBar(),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -37,11 +51,11 @@ class _HomeScreenState extends State<HomeScreen> {
       case 1:
         return SoundListScreen(title: 'Sounds');
       case 2:
-        return Center(child: Text('Soul Screen', style: TextStyle(color: lightBrown, fontSize: 24)));
+        return TopQuotesScreen(title: 'Soul');
       case 3:
-        return Center(child: Text('Top Screen', style: TextStyle(color: lightBrown, fontSize: 24)));
+        return TopQuotesScreen(title: 'Top Quotes');
       case 4:
-        return Center(child: Text('More Screen', style: TextStyle(color: lightBrown, fontSize: 24)));
+        return MedicineNoteScreen();
       default:
         return _buildHomeContent(context);
     }
@@ -51,9 +65,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       children: [
         Builder(
-            builder: (BuildContext context) {
-              return _buildTopBar(context);
-            }
+          builder: (BuildContext context) {
+            return _buildTopBar(context);
+          },
         ),
         Expanded(
           child: SingleChildScrollView(
@@ -164,15 +178,14 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: const BoxDecoration(
-              color: Colors.transparent,
-            ),
+            decoration: const BoxDecoration(color: Colors.transparent),
             child: Stack(
               children: [
                 Positioned(
                   right: 0,
                   child: Image.asset(
-                    'assets/images/drawer_header.png', // Placeholder image asset
+                    'assets/images/drawer_header.png',
+                    // Placeholder image asset
                     fit: BoxFit.contain,
                     width: 150,
                   ),
@@ -204,10 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       SizedBox(height: 5),
                       Text(
                         '- Buddha',
-                        style: TextStyle(
-                          color: primaryBrown,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: primaryBrown, fontSize: 12),
                       ),
                     ],
                   ),
@@ -215,14 +225,20 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          ...drawerItems.map((item) => ListTile(
-            leading: Icon(item['icon'] as IconData, color: primaryBrown),
-            title: Text(item['text'] as String, style: const TextStyle(color: primaryBrown)),
-            onTap: () {
-              // Handle item tap
-              Navigator.pop(context); // Close drawer
-            },
-          )),
+          ...drawerItems.map(
+            (item) => ListTile(
+              leading: Icon(item['icon'] as IconData, color: primaryBrown),
+              title: Text(
+                item['text'] as String,
+                style: const TextStyle(color: primaryBrown),
+              ),
+              onTap: () {
+                // Handle navigation for drawer items
+                _navigateToCategory(context, item['text'] as String);
+                Navigator.pop(context); // Close drawer
+              },
+            ),
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout, color: accentPink),
@@ -239,24 +255,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Helper method to build a button for the top bar.
   Widget _buildTopButton(String text, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: lightBrown,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: primaryBrown),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: primaryBrown),
-          const SizedBox(width: 5),
-          Text(text, style: const TextStyle(color: primaryBrown)),
-        ],
+    return GestureDetector(
+      onTap: () {
+        // Navigate based on the tag
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => TopQuotesScreen(title: text)),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: lightBrown,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: primaryBrown),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: primaryBrown),
+            const SizedBox(width: 5),
+            Text(text, style: const TextStyle(color: primaryBrown)),
+          ],
+        ),
       ),
     );
   }
 
-  // Helper method to build the category tabs.
+  // Helper method to build the category tabs with navigation functionality
   Widget _buildCategoryTabs() {
     final categories = [
       {'text': 'Cardinal Sounds', 'icon': Icons.music_note},
@@ -290,42 +315,150 @@ class _HomeScreenState extends State<HomeScreen> {
         itemCount: categories.length,
         itemBuilder: (context, index) {
           final category = categories[index];
-          return _buildGridButton(category['text'] as String, category['icon'] as IconData);
+          return _buildGridButton(
+            category['text'] as String,
+            category['icon'] as IconData,
+            onTap:
+                () => _navigateToCategory(context, category['text'] as String),
+          );
         },
       ),
     );
   }
 
-  // Helper method to build a button for the category grid.
-  Widget _buildGridButton(String text, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: lightBrown,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: primaryBrown),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: primaryBrown, size: 24),
-          const SizedBox(height: 5),
-          Text(
-            text,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12, color: primaryBrown),
-          ),
-        ],
+  // Helper method to build a button for the category grid with navigation.
+  Widget _buildGridButton(
+    String text,
+    IconData icon, {
+    required Function() onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: lightBrown,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: primaryBrown),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1), // Fixed this line
+              spreadRadius: 1,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: primaryBrown, size: 24),
+            const SizedBox(height: 5),
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12, color: primaryBrown),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  // Method to handle navigation based on category
+  void _navigateToCategory(BuildContext context, String category) {
+    switch (category) {
+      case 'Cardinal Sounds':
+      case 'Nature Sounds':
+      case 'Natural Sound':
+      case 'Cardinal Sound':
+      case 'Meditational Audios':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SoundListScreen(title: category),
+          ),
+        );
+        break;
+      case 'Top Quotes':
+      case 'Cardinal Quotes':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TopQuotesScreen(title: category),
+          ),
+        );
+        break;
+      case 'Soul Check-In':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TopQuotesScreen(title: 'Soul'),
+          ),
+        );
+        break;
+      case 'Wallpaper':
+        // For now, show a snackbar instead of navigating to unimplemented screen
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$category section coming soon!')),
+        );
+        break;
+      case 'Sleeping Stories':
+        // For now, show a snackbar instead of navigating to unimplemented screen
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$category section coming soon!')),
+        );
+        break;
+      case 'Meditation':
+      case 'Short Meditations':
+      case 'Breathing Exercises':
+      case 'Breathing Exercise':
+        // For now, show a snackbar instead of navigating to unimplemented screen
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$category section coming soon!')),
+        );
+        break;
+      case 'Sacred Journals':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => JournalScreen()),
+        );
+      case 'Medicine Notes':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MedicineNoteScreen()),
+        );
+        break;
+      case 'Memorial Cards':
+      case 'Memorial Card':
+        // For now, show a snackbar instead of navigating to unimplemented screen
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$category section coming soon!')),
+        );
+        break;
+      case 'Save':
+        // For now, show a snackbar instead of navigating to unimplemented screen
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$category section coming soon!')),
+        );
+        break;
+      case 'Explore':
+      case 'Popular':
+      case 'Latest':
+        // For these categories, we can navigate to filtered views
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TopQuotesScreen(title: category),
+          ),
+        );
+        break;
+      default:
+        // For any other category or as a fallback
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$category section coming soon!')),
+        );
+    }
   }
 
   // Helper method to build a section with a title and horizontal scrollable list.
@@ -352,10 +485,33 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    // Navigate to the appropriate screen based on title
+                    if (title.contains('Wallpaper')) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Wallpaper section coming soon!'),
+                        ),
+                      );
+                    } else if (title.contains('Quotes')) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => TopQuotesScreen(title: 'Top Quotes'),
+                        ),
+                      );
+                    } else if (title.contains('Memorial')) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Memorial Cards section coming soon!'),
+                        ),
+                      );
+                    }
+                  },
                   child: const Text(
                     'See All >',
-                    style: TextStyle(color: primaryBrown),
+                    style: TextStyle(color: lightBrown),
                   ),
                 ),
               ],
@@ -368,14 +524,36 @@ class _HomeScreenState extends State<HomeScreen> {
               scrollDirection: Axis.horizontal,
               itemCount: items.length,
               itemBuilder: (context, index) {
-                return Container(
-                  width: 150,
-                  margin: EdgeInsets.only(left: index == 0 ? 16 : 8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    image: DecorationImage(
-                      image: AssetImage(items[index]),
-                      fit: BoxFit.cover,
+                return GestureDetector(
+                  onTap: () {
+                    // Navigate based on the item type with snackbar fallbacks
+                    if (title.contains('Wallpaper')) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Wallpaper detail coming soon!'),
+                        ),
+                      );
+                    } else if (title.contains('Quotes')) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Quote detail coming soon!')),
+                      );
+                    } else if (title.contains('Memorial')) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Memorial Card detail coming soon!'),
+                        ),
+                      );
+                    }
+                  },
+                  child: Container(
+                    width: 150,
+                    margin: EdgeInsets.only(left: index == 0 ? 16 : 8),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      image: DecorationImage(
+                        image: AssetImage(items[index]),
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                 );
@@ -406,22 +584,35 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  // Show snackbar for unimplemented screen
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Announcements coming soon!')),
+                  );
+                },
                 child: const Text(
                   'See All >',
-                  style: TextStyle(color: primaryBrown),
+                  style: TextStyle(color: lightBrown),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 10),
-          Container(
-            height: 150,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              image: const DecorationImage(
-                image: AssetImage('assets/images/announcement.png'),
-                fit: BoxFit.cover,
+          GestureDetector(
+            onTap: () {
+              // Show snackbar for unimplemented screen
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Announcement detail coming soon!')),
+              );
+            },
+            child: Container(
+              height: 150,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                image: const DecorationImage(
+                  image: AssetImage('assets/images/announcement.png'),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           ),
@@ -441,7 +632,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.1), // Fixed this line
             spreadRadius: 2,
             blurRadius: 10,
           ),
@@ -452,23 +643,43 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           GestureDetector(
             onTap: () => _onItemTapped(0),
-            child: _buildBottomNavItem(Icons.home_filled, 'Home', _selectedIndex == 0),
+            child: _buildBottomNavItem(
+              Icons.home_filled,
+              'Home',
+              _selectedIndex == 0,
+            ),
           ),
           GestureDetector(
             onTap: () => _onItemTapped(1),
-            child: _buildBottomNavItem(Icons.music_note, 'Sounds', _selectedIndex == 1),
+            child: _buildBottomNavItem(
+              Icons.music_note,
+              'Sounds',
+              _selectedIndex == 1,
+            ),
           ),
           GestureDetector(
             onTap: () => _onItemTapped(2),
-            child: _buildBottomNavItem(Icons.person, 'Soul', _selectedIndex == 2),
+            child: _buildBottomNavItem(
+              Icons.person,
+              'Soul',
+              _selectedIndex == 2,
+            ),
           ),
           GestureDetector(
             onTap: () => _onItemTapped(3),
-            child: _buildBottomNavItem(Icons.format_quote, 'Top', _selectedIndex == 3),
+            child: _buildBottomNavItem(
+              Icons.format_quote,
+              'Top',
+              _selectedIndex == 3,
+            ),
           ),
           GestureDetector(
             onTap: () => _onItemTapped(4),
-            child: _buildBottomNavItem(Icons.more_horiz, 'More', _selectedIndex == 4),
+            child: _buildBottomNavItem(
+              Icons.more_horiz,
+              'More',
+              _selectedIndex == 4,
+            ),
           ),
         ],
       ),
@@ -479,11 +690,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          color: isSelected ? primaryBrown : Colors.grey,
-          size: 26,
-        ),
+        Icon(icon, color: isSelected ? primaryBrown : Colors.grey, size: 26),
         Text(
           label,
           style: TextStyle(
